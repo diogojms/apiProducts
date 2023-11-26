@@ -1,4 +1,4 @@
-'produto strict'
+'product strict'
 
 //require
 const mongoose = require('mongoose')

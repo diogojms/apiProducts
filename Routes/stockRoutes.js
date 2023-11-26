@@ -33,7 +33,7 @@ function isAdminOrStaff(req, res, next) {
 
 router.post('/AddStock', checkToken, isAdminOrStaff, stockController.AddStock)
 router.post('/EditStock', checkToken, isAdminOrStaff, stockController.EditStock)
-router.post('/RemoveStock', checkToken, isAdminOrStaff, stockController.RemoveStock)
-router.get('/ReadStock/:id', checkToken, isAdminOrStaff, stockController.ReadStock)
+router.post('/RemoveStock/', checkToken, isAdminOrStaff, stockController.RemoveStock)
+router.get('/ReadStock/', checkToken, isAdminOrStaff, stockController.ReadStock)
 
 module.exports = router;

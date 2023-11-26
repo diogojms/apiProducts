@@ -1,7 +1,6 @@
 const Products = require('../Models/products')
 const mongoose = require('mongoose');
 const Stocks = require('../Models/stock');
-const e = require('express');
 
 exports.AddStock = async (req, res) => {
     const {quantity, ProductID} = req.body
@@ -15,13 +14,13 @@ exports.AddStock = async (req, res) => {
         return res.status(400).json({msg: 'ID de produto inválido'})
     }
 
-    const stockExists = await Stocks.findOne({ ProductID: productID });
-    if(stockExists){
+    const stockExists = await Stocks.findOne({ ProductID: productID._id});
+    if(stockExists.quantity != 0){
         return res.status(400).json({msg: 'Produto ja possui stock'})
     }else{
         const stock = await Stocks.create({
             quantity,
-            productID: ProductID._id
+            ProductID: productID._id
         })
         res.json({status:'success', Stocks: stock})
     }
@@ -48,7 +47,7 @@ exports.EditStock = async (req, res) => {
 }
 
 exports.RemoveStock = async (req, res) => {
-    const {ProductID} = req.body
+    const {ProductID} = req.query
     if(!ProductID){
         return res.status(400).json({msg: 'Preencha todos os campos'})
     }
@@ -69,7 +68,7 @@ exports.RemoveStock = async (req, res) => {
 }
 
 exports.ReadStock = async (req, res) => {
-    const { ProductID } = req.params;
+    const { ProductID } = req.query;
 
     if (!ProductID) {
         return res.status(400).json({ msg: 'Invalid product ID' });

@@ -1,6 +1,7 @@
 const Products = require('../Models/products')
 const mongoose = require('mongoose');
-const Stocks = require('../Models/stock')
+const Stocks = require('../Models/stock');
+const Product = require('../Models/products');
 
 exports.CreateProduct = async (req, res) => {
     const {name, price} = req.body
@@ -23,7 +24,7 @@ exports.CreateProduct = async (req, res) => {
 exports.EditProductName = async (req, res) => {
     try {
         const { newName } = req.body;
-        const { id } = req.params;
+        const { id } = req.query;
 
         // Verifica se o ID é válido
         if (!mongoose.Types.ObjectId.isValid(id)){
@@ -36,7 +37,7 @@ exports.EditProductName = async (req, res) => {
         }
 
         // Atualiza o produto pelo ID
-        const updatedProduct = await Product.findByIdAndUpdate(id, { newName }, { new: true });
+        const updatedProduct = await Product.findByIdAndUpdate(id, { name: newName }, { new: true });
 
         // Verifica se o produto foi encontrado e atualizado
         if (!updatedProduct) {
@@ -44,7 +45,7 @@ exports.EditProductName = async (req, res) => {
         }
 
         // Responde com sucesso e os detalhes do produto atualizado
-        res.json({ status: 'success', product: updatedProduct });
+        res.json({ status: 'success', Products: updatedProduct });
     } catch (error) {
         console.error('Erro ao atualizar o produto:', error);
         res.status(500).json({ msg: 'Erro interno do servidor' });
@@ -54,7 +55,7 @@ exports.EditProductName = async (req, res) => {
 exports.EditProductPrice = async (req, res) => {
     try {
         const { newPrice } = req.body;
-        const { productID } = req.params;
+        const { productID } = req.query;
 
         // Verifica se o ID do produto é válido
         if (!productID || !newPrice){
@@ -68,7 +69,7 @@ exports.EditProductPrice = async (req, res) => {
 
         // Atualiza o preço do produto pelo ID
 
-        const updatedProduct = await Products.findByIdAndUpdate(productID, { newPrice }, { new: true });
+        const updatedProduct = await Products.findByIdAndUpdate(productID, { price:newPrice }, { new: true });
 
         res.json({ status: 'success', product: updatedProduct });
     } catch (error) {
@@ -78,7 +79,7 @@ exports.EditProductPrice = async (req, res) => {
 };
 
 exports.RemoveProduct = async (req, res) => {
-    const { productID } = req.params;
+    const { productID } = req.query;
 
     if (!productID) {
         return res.status(400).json({ msg: 'Invalid product ID' });
@@ -97,7 +98,7 @@ exports.RemoveProduct = async (req, res) => {
 }
 
 exports.ReadProduct = async (req, res) => {
-    const { productID } = req.params;
+    const { productID } = req.query;
 
     if (!productID) {
         return res.status(400).json({ msg: 'Invalid product ID' });
