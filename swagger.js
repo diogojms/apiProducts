@@ -10,7 +10,7 @@ const options = {
       description: 'A simple API with Swagger documentation',
     },
   },
-  apis: ['./apiProducts/Controllers/productController.js','./apiProducts/Controllers/stockController.js'], // Point to the file that contains your route definitions
+  apis: ['./Controllers/productController.js','./Controllers/stockController.js'], // Point to the file that contains your route definitions
 };
 
 const specs = swaggerJsdoc(options);

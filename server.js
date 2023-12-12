@@ -6,6 +6,8 @@ var bodyParser = require('body-parser')
 // const swaggerUi = require('swagger-ui-express')
 // const swaggerFile = require('./swagger_output.json')
 
+const { specs, swaggerUi } = require('./swagger');
+
 require('dotenv').config();
 
 const uri = process.env.MONGODB_URI;
@@ -25,6 +27,7 @@ app.use(bodyParser.urlencoded({ extended: false })); //parse application/x-www-f
 // routes
 app.use('/product', require('./Routes/productRoutes'));
 app.use('/stock', require('./Routes/stockRoutes'));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 let port=8083;
 app.listen(port, () => {
