@@ -111,24 +111,39 @@ exports.AddStock = async (req, res) => {
  *         description: Internal Server Error - Failed to edit stock for the product
  */
 exports.EditStock = async (req, res) => {
-    const {newQuantity, ProductID} = req.body
-    if(!newQuantity || !ProductID){
-        return res.status(400).json({msg: 'Preencha todos os campos'})
+    const { newQuantity, ProductID } = req.body;
+
+    if (!newQuantity || !ProductID) {
+        return res.status(400).json({ msg: 'Preencha todos os campos' });
     }
 
-    const productID = await Products.findOne({ _id: ProductID });
-    if(!productID){
-        return res.status(400).json({msg: 'ID de produto inválido'})
-    }
+    try {
+        const product = await Products.findOne({ _id: ProductID });
 
-    const stockExists = await Stocks.findOne({ ProductID: productID._id });
-    if(!stockExists){
-        return res.status(400).json({msg: 'Produto não possui stock'})
-    }
+        if (!product) {
+            return res.status(400).json({ msg: 'ID de produto inválido' });
+        }
 
-    const stock = await Stocks.findOneAndUpdate(stockExists, { quantity: newQuantity });
-    res.json({status:'success', Stocks: stock})
-}
+        const stock = await Stocks.findOne({ ProductID: product._id });
+
+        if (!stock) {
+            return res.status(400).json({ msg: 'Produto não possui stock' });
+        }
+
+        const updatedStockQuantity = stock.quantity - newQuantity;
+
+        const updatedStock = await Stocks.findOneAndUpdate(
+            { ProductID: product._id },
+            { $set: { quantity: updatedStockQuantity } },
+            { new: true }
+        );
+
+        res.json({ status: 'success', Stocks: updatedStock });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Erro no servidor' });
+    }
+};
 
 /**
  * @swagger
@@ -239,3 +254,40 @@ exports.ReadStock = async (req, res) => {
 
     res.json({ status: 'success', stock: stock.quantity })
 }
+
+exports.updateStock = async (req, res) => {
+    try {
+        const {newQuantity, ProductID} = req.body
+  
+      if (isNaN(newQuantity) || newQuantity < 0) {
+        return apiResponse.send(
+          res,
+          apiResponse.createModelRes(400, "Invalid quantity", {})
+        );
+      }
+  
+      const updatedProduct = await Product.findByIdAndUpdate(
+        ProductID,
+        { $inc: { stock: -newQuantity } },
+        { new: true }
+      );
+  
+      if (!updatedProduct) {
+        return apiResponse.send(
+          res,
+          apiResponse.createModelRes(404, "Product not found", {})
+        );
+      }
+  
+      return apiResponse.send(
+        res,
+        apiResponse.createModelRes(200, "Stock updated", updatedProduct)
+      );
+    } catch (error) {
+      console.error(error);
+      return apiResponse.send(
+        res,
+        apiResponse.createModelRes(500, "Error updating stock", {})
+      );
+    }
+  };
