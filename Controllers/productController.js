@@ -5,7 +5,7 @@ const Product = require('../Models/products');
 
 /**
  * @swagger
- * /products:
+ * /CreateProduct:
  *   post:
  *     summary: Create a new product
  *     description: Endpoint to create a new product with the provided name and price.
@@ -67,7 +67,7 @@ exports.CreateProduct = async (req, res) => {
 }
 /**
  * @swagger
- * /products/editName:
+ * /EditProductName/:
  *   put:
  *     summary: Edit product name
  *     description: Endpoint to edit the name of an existing product.
@@ -143,7 +143,7 @@ exports.EditProductName = async (req, res) => {
 
 /**
  * @swagger
- * /products/editPrice:
+ * /EditProductPrice/:
  *   put:
  *     summary: Edit product price
  *     description: Endpoint to edit the price of an existing product.
@@ -214,7 +214,7 @@ exports.EditProductPrice = async (req, res) => {
 
 /**
  * @swagger
- * /products/remove:
+ * /RemoveProduct:
  *   delete:
  *     summary: Remove a product
  *     description: Endpoint to remove an existing product.
@@ -272,7 +272,7 @@ exports.RemoveProduct = async (req, res) => {
 
 /**
  * @swagger
- * /products/read:
+ * /ReadProduct/:
  *   get:
  *     summary: Get product information
  *     description: Endpoint to retrieve information about an existing product.
@@ -333,7 +333,7 @@ exports.ReadProduct = async (req, res) => {
 
 /**
  * @swagger
- * /products/readAll:
+ * /ReadProducts:
  *   get:
  *     summary: Get all products
  *     description: Endpoint to retrieve information about all existing products.

@@ -4,7 +4,7 @@ const Stocks = require('../Models/stock');
 
 /**
  * @swagger
- * /stocks/add:
+ * /AddStock:
  *   post:
  *     summary: Add stock to a product
  *     description: Endpoint to add stock to an existing product.
@@ -70,7 +70,7 @@ exports.AddStock = async (req, res) => {
 
 /**
  * @swagger
- * /stocks/edit:
+ * /EditStock:
  *   put:
  *     summary: Edit stock for a product
  *     description: Endpoint to edit the stock quantity for an existing product.
@@ -147,7 +147,7 @@ exports.EditStock = async (req, res) => {
 
 /**
  * @swagger
- * /stocks/remove:
+ * /RemoveStock/:
  *   delete:
  *     summary: Remove stock for a product
  *     description: Endpoint to remove the stock for an existing product.
@@ -202,7 +202,7 @@ exports.RemoveStock = async (req, res) => {
 
 /**
  * @swagger
- * /stocks/read:
+ * /ReadStock/:
  *   get:
  *     summary: Get stock information for a product
  *     description: Endpoint to retrieve stock information for an existing product.
