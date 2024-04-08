@@ -67,107 +67,34 @@ exports.CreateProduct = async (req, res) => {
 }
 /**
  * @swagger
- * /EditProductName/:
+ * /EditProduct/:
  *   put:
- *     summary: Edit product name
- *     description: Endpoint to edit the name of an existing product.
- *     tags:
- *       - Products
- *     parameters:
- *       - name: id
- *         in: query
- *         description: ID of the product to edit
- *         required: true
- *         schema:
- *           type: string
- *       - name: newName
- *         in: body
- *         description: New name for the product
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             newName:
- *               type: string
- *     responses:
- *       '200':
- *         description: Product name edited successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   enum: [success]
- *                 Products:
- *                   type: object
- *                   // Define your product properties here
- *       '400':
- *         description: Bad Request - Invalid or missing input data
- *       '404':
- *         description: Not Found - Product not found
- *       '500':
- *         description: Internal Server Error - Failed to edit product name
- */  
-exports.EditProductName = async (req, res) => {
-    try {
-        const { newName } = req.body;
-        const { id } = req.query;
-
-        // Verifica se o ID é válido
-        if (!mongoose.Types.ObjectId.isValid(id)){
-            return res.status(400).json({ msg: 'ID de produto inválido' });
-        }
-
-        // Verifica se o campo 'name' está presente
-        if (!newName) {
-            return res.status(400).json({ msg: 'O campo "name" é obrigatório' });
-        }
-
-        // Atualiza o produto pelo ID
-        const updatedProduct = await Product.findByIdAndUpdate(id, { name: newName }, { new: true });
-
-        // Verifica se o produto foi encontrado e atualizado
-        if (!updatedProduct) {
-            return res.status(404).json({ msg: 'Produto não encontrado' });
-        }
-
-        // Responde com sucesso e os detalhes do produto atualizado
-        res.json({ status: 'success', Products: updatedProduct });
-    } catch (error) {
-        console.error('Erro ao atualizar o produto:', error);
-        res.status(500).json({ msg: 'Erro interno do servidor' });
-    }
-};
-
-/**
- * @swagger
- * /EditProductPrice/:
- *   put:
- *     summary: Edit product price
- *     description: Endpoint to edit the price of an existing product.
+ *     summary: Edit product
+ *     description: Endpoint to edit the fields of an existing product.
  *     tags:
  *       - Products
  *     parameters:
  *       - name: productID
  *         in: query
- *         description: ID of the product to edit the price
+ *         description: ID of the product to edit
  *         required: true
  *         schema:
  *           type: string
- *       - name: newPrice
- *         in: body
- *         description: New price for the product
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             newPrice:
- *               type: number
+ *     requestBody:
+ *       description: Product fields to be updated
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               price:
+ *                 type: number
  *     responses:
  *       '200':
- *         description: Product price edited successfully
+ *         description: Product edited successfully
  *         content:
  *           application/json:
  *             schema:
@@ -184,16 +111,15 @@ exports.EditProductName = async (req, res) => {
  *       '404':
  *         description: Not Found - Product not found
  *       '500':
- *         description: Internal Server Error - Failed to edit product price
+ *         description: Internal Server Error - Failed to edit product
  */
-exports.EditProductPrice = async (req, res) => {
+exports.EditProduct = async (req, res) => {
     try {
-        const { newPrice } = req.body;
         const { productID } = req.query;
 
         // Verifica se o ID do produto é válido
-        if (!productID || !newPrice){
-            return res.status(400).json({ msg: 'ID de produto ou novo preço inválido' });
+        if (!productID){
+            return res.status(400).json({ msg: 'ID de produto inválido' });
         }
 
         const product = await Products.findById(productID);
@@ -201,13 +127,12 @@ exports.EditProductPrice = async (req, res) => {
             return res.status(404).json({ msg: 'Produto não encontrado' });
         }
 
-        // Atualiza o preço do produto pelo ID
-
-        const updatedProduct = await Products.findByIdAndUpdate(productID, { price:newPrice }, { new: true });
+        // Atualiza os campos do produto pelo ID
+        const updatedProduct = await Products.findByIdAndUpdate(productID, req.body, { new: true });
 
         res.json({ status: 'success', product: updatedProduct });
     } catch (error) {
-        console.error('Erro ao atualizar o preço do produto:', error);
+        console.error('Erro ao atualizar o produto:', error);
         res.status(500).json({ msg: 'Erro interno do servidor' });
     }
 };
@@ -359,7 +284,25 @@ exports.ReadProduct = async (req, res) => {
  *         description: Internal Server Error - Failed to retrieve products information
  */
 exports.ReadProducts = async (req, res) => {
-    const products = await Products.find();
-    res.json({ status: 'success', products: products })
+    const { page, limit } = req.query;
+    const pageNumber = parseInt(page) || 1;
+    const limitNumber = parseInt(limit) || 10;
+
+    const startIndex = (pageNumber - 1) * limitNumber;
+    const endIndex = pageNumber * limitNumber;
+
+    const products = await Products.find().skip(startIndex).limit(limitNumber);
+
+    const totalProducts = await Products.countDocuments();
+
+    const totalPages = Math.ceil(totalProducts / limitNumber);
+
+    const pagination = {
+        currentPage: pageNumber,
+        totalPages: totalPages,
+        totalProducts: totalProducts
+    };
+
+    res.json({ status: 'success', products: products, pagination: pagination });
 }
 
