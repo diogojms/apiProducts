@@ -4,12 +4,19 @@ const Stocks = require('../Models/stock');
 
 /**
  * @swagger
- * /AddStock:
+ * /AddStock/{id}:
  *   post:
  *     summary: Add stock to a product
  *     description: Endpoint to add stock to an existing product.
  *     tags:
  *       - Stocks
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID of the product to add stock
+ *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
  *       description: Stock addition data
  *       required: true
@@ -20,11 +27,8 @@ const Stocks = require('../Models/stock');
  *             properties:
  *               quantity:
  *                 type: integer
- *               ProductID:
- *                 type: string
  *             required:
  *               - quantity
- *               - ProductID
  *     responses:
  *       '200':
  *         description: Stock added successfully
@@ -45,37 +49,51 @@ const Stocks = require('../Models/stock');
  *         description: Internal Server Error - Failed to add stock to the product
  */
 exports.AddStock = async (req, res) => {
-    const {quantity, ProductID} = req.body
+    const { quantity } = req.body;
+    const { id } = req.params;
 
-    if(!quantity || !ProductID){
-        return res.status(400).json({msg: 'Preencha todos os campos'})
+    if (!quantity) {
+        return res.status(400).json({ msg: 'Preencha todos os campos' });
     }
 
-    const productID = await Products.findOne({ _id: ProductID });
-    if(!productID){
-        return res.status(400).json({msg: 'ID de produto inválido'})
-    }
+    try {
+        const product = await Products.findOne({ _id: id });
+        if (!product) {
+            return res.status(400).json({ msg: 'ID de produto inválido' });
+        }
 
-    const stockExists = await Stocks.findOne({ ProductID: productID._id});
-    if(stockExists.quantity != 0){
-        return res.status(400).json({msg: 'Produto ja possui stock'})
-    }else{
+        const stockExists = await Stocks.findOne({ ProductID: product._id });
+        if (stockExists && stockExists.quantity !== 0) {
+            return res.status(400).json({ msg: 'Produto já possui stock' });
+        }
+
         const stock = await Stocks.create({
             quantity,
-            ProductID: productID._id
-        })
-        res.json({status:'success', Stocks: stock})
+            ProductID: product._id
+        });
+
+        res.json({ status: 'success', Stocks: stock });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Erro no servidor' });
     }
 }
 
 /**
  * @swagger
- * /EditStock:
+ * /EditStock/{id}:
  *   put:
  *     summary: Edit stock for a product
  *     description: Endpoint to edit the stock quantity for an existing product.
  *     tags:
  *       - Stocks
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ID of the product to edit the stock
+ *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
  *       description: Stock editing data
  *       required: true
@@ -86,11 +104,8 @@ exports.AddStock = async (req, res) => {
  *             properties:
  *               newQuantity:
  *                 type: integer
- *               ProductID:
- *                 type: string
  *             required:
  *               - newQuantity
- *               - ProductID
  *     responses:
  *       '200':
  *         description: Stock edited successfully
@@ -111,14 +126,15 @@ exports.AddStock = async (req, res) => {
  *         description: Internal Server Error - Failed to edit stock for the product
  */
 exports.EditStock = async (req, res) => {
-    const { newQuantity, ProductID } = req.body;
+    const { newQuantity } = req.body;
+    const { id } = req.params;
 
-    if (!newQuantity || !ProductID) {
+    if (!newQuantity) {
         return res.status(400).json({ msg: 'Preencha todos os campos' });
     }
 
     try {
-        const product = await Products.findOne({ _id: ProductID });
+        const product = await Products.findOne({ _id: id });
 
         if (!product) {
             return res.status(400).json({ msg: 'ID de produto inválido' });
@@ -180,7 +196,7 @@ exports.EditStock = async (req, res) => {
  *         description: Internal Server Error - Failed to remove stock for the product
  */
 exports.RemoveStock = async (req, res) => {
-    const {ProductID} = req.query
+    const {ProductID} = req.params
     if(!ProductID){
         return res.status(400).json({msg: 'Preencha todos os campos'})
     }
@@ -209,7 +225,7 @@ exports.RemoveStock = async (req, res) => {
  *     tags:
  *       - Stocks
  *     parameters:
- *       - name: ProductID
+ *       - name: id
  *         in: query
  *         description: ID of the product to retrieve stock information
  *         required: true
@@ -236,13 +252,13 @@ exports.RemoveStock = async (req, res) => {
  *         description: Internal Server Error - Failed to retrieve stock information
  */
 exports.ReadStock = async (req, res) => {
-    const { ProductID } = req.query;
+    const { id } = req.params;
 
-    if (!ProductID) {
+    if (!id) {
         return res.status(400).json({ msg: 'Invalid product ID' });
     }
 
-    const productID = await Products.findOne({ _id: ProductID });
+    const productID = await Products.findOne({ _id: id });
     if (!productID) {
         return res.status(404).json({ msg: 'Product not found' });
     }

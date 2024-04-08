@@ -31,9 +31,9 @@ function isAdminOrStaff(req, res, next) {
         res.status(403).json()
 }
 
-router.post('/AddStock', checkToken, isAdminOrStaff, stockController.AddStock)
-router.post('/EditStock', checkToken, stockController.EditStock)
-router.post('/RemoveStock/', checkToken, isAdminOrStaff, stockController.RemoveStock)
-router.get('/ReadStock/', checkToken, isAdminOrStaff, stockController.ReadStock)
+router.post('/:id', checkToken, isAdminOrStaff, stockController.AddStock)
+router.put('/:id', checkToken, stockController.EditStock)
+router.delete('/:id', checkToken, isAdminOrStaff, stockController.RemoveStock)
+router.get('/:id', checkToken, isAdminOrStaff, stockController.ReadStock)
 
 module.exports = router;
