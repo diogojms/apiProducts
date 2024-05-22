@@ -1,6 +1,4 @@
-const Products = require('../Models/products')
-const mongoose = require('mongoose');
-const Stocks = require('../Models/stock');
+const Products = require('../Models/products');
 
 /**
  * @swagger
@@ -42,7 +40,15 @@ const Stocks = require('../Models/stock');
  *                   enum: [success]
  *                 Stocks:
  *                   type: object
- *                   // Define your stock properties here
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     quantity:
+ *                       type: number
  *       '400':
  *         description: Bad Request - Invalid or missing input data
  *       '500':
@@ -62,17 +68,14 @@ exports.AddStock = async (req, res) => {
             return res.status(400).json({ msg: 'ID de produto inválido' });
         }
 
-        const stockExists = await Stocks.findOne({ ProductID: product._id });
-        if (stockExists && stockExists.quantity !== 0) {
+        if (product.quantity !== 0) {
             return res.status(400).json({ msg: 'Produto já possui stock' });
         }
 
-        const stock = await Stocks.create({
-            quantity,
-            ProductID: product._id
-        });
+        product.quantity = quantity;
+        await product.save();
 
-        res.json({ status: 'success', Stocks: stock });
+        res.json({ status: 'success', Products: product });
     } catch (error) {
         console.error(error);
         res.status(500).json({ msg: 'Erro no servidor' });
@@ -119,7 +122,15 @@ exports.AddStock = async (req, res) => {
  *                   enum: [success]
  *                 Stocks:
  *                   type: object
- *                   // Define your stock properties here
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     quantity:
+ *                       type: number
  *       '400':
  *         description: Bad Request - Invalid or missing input data
  *       '500':
@@ -140,21 +151,14 @@ exports.EditStock = async (req, res) => {
             return res.status(400).json({ msg: 'ID de produto inválido' });
         }
 
-        const stock = await Stocks.findOne({ ProductID: product._id });
-
-        if (!stock) {
+        if (product.quantity === 0) {
             return res.status(400).json({ msg: 'Produto não possui stock' });
         }
 
-        const updatedStockQuantity = stock.quantity - newQuantity;
+        product.quantity = newQuantity;
+        await product.save();
 
-        const updatedStock = await Stocks.findOneAndUpdate(
-            { ProductID: product._id },
-            { $set: { quantity: updatedStockQuantity } },
-            { new: true }
-        );
-
-        res.json({ status: 'success', Stocks: updatedStock });
+        res.json({ status: 'success', Stocks: product });
     } catch (error) {
         console.error(error);
         res.status(500).json({ msg: 'Erro no servidor' });
@@ -189,7 +193,15 @@ exports.EditStock = async (req, res) => {
  *                   enum: [success]
  *                 Stocks:
  *                   type: object
- *                   // Define your stock properties here
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     quantity:
+ *                       type: number
  *       '400':
  *         description: Bad Request - Invalid or missing input data
  *       '500':
@@ -206,14 +218,14 @@ exports.RemoveStock = async (req, res) => {
         return res.status(400).json({msg: 'ID de produto inválido'})
     }
 
-    const stockExists = await Stocks.findOne({ ProductID: productID._id });
-    if(!stockExists){
+    if(productID.quantity === 0){
         return res.status(400).json({msg: 'Produto não possui stock'})
     }
 
-    const stock = await Stocks.deleteOne(stockExists);
+    productID.quantity = 0;
+    await productID.save();
 
-    res.json({status:'success', Stocks: stock})
+    res.json({status:'success', Stocks: productID})
 }
 
 /**
@@ -263,12 +275,7 @@ exports.ReadStock = async (req, res) => {
         return res.status(404).json({ msg: 'Product not found' });
     }
 
-    const stock = await Stocks.findOne({ ProductID: productID._id });
-    if (!stock) {
-        return res.status(404).json({ msg: 'Stock not found' });
-    }
-
-    res.json({ status: 'success', stock: stock.quantity })
+    res.json({ status: 'success', stock: productID.quantity })
 }
 
 exports.updateStock = async (req, res) => {
@@ -284,7 +291,7 @@ exports.updateStock = async (req, res) => {
   
       const updatedProduct = await Product.findByIdAndUpdate(
         ProductID,
-        { $inc: { stock: -newQuantity } },
+        { $set: { quantity: newQuantity } },
         { new: true }
       );
   

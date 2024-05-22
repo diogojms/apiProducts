@@ -1,6 +1,5 @@
-const Products = require('../Models/products')
+const Products = require('../Models/products');
 const mongoose = require('mongoose');
-const Stocks = require('../Models/stock');
 const Product = require('../Models/products');
 
 /**
@@ -8,7 +7,7 @@ const Product = require('../Models/products');
  * /CreateProduct:
  *   post:
  *     summary: Create a new product
- *     description: Endpoint to create a new product with the provided name and price.
+ *     description: Endpoint to create a new product with the provided name, price, and quantity.
  *     tags:
  *       - Products
  *     requestBody:
@@ -23,9 +22,12 @@ const Product = require('../Models/products');
  *                 type: string
  *               price:
  *                 type: number
+ *               quantity:
+ *                 type: number
  *             required:
  *               - name
  *               - price
+ *               - quantity
  *     responses:
  *       '200':
  *         description: Product created successfully
@@ -37,34 +39,37 @@ const Product = require('../Models/products');
  *                 status:
  *                   type: string
  *                   enum: [success]
- *                 Products:
+ *                 product:
  *                   type: object
- *                   // Define your product properties here
- *                 Stocks:
- *                   type: object
- *                   // Define your stock properties here
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     quantity:
+ *                       type: number
  *       '400':
  *         description: Bad Request - Invalid or missing input data
  *       '500':
  *         description: Internal Server Error - Failed to create the product
  */
 exports.CreateProduct = async (req, res) => {
-    const {name, price} = req.body
+    const { name, price, quantity } = req.body;
 
-    if(!name || !price)
-        return res.status(400).json({msg: 'Preencha todos os campos'})
+    if (!name || !price || !quantity)
+        return res.status(400).json({ msg: 'Preencha todos os campos' });
 
     const response = await Products.create({
         name,
-        price
-    })
+        price,
+        quantity
+    });
 
-    const stock = await Stocks.create({
-        quantity: 0,
-        ProductID: response._id
-    })
-    res.json({status:'success', Products: response, Stocks: stock})
-}
+    res.json({ status: 'success', product: response });
+};
+
 /**
  * @swagger
  * /EditProduct/:
@@ -92,6 +97,8 @@ exports.CreateProduct = async (req, res) => {
  *                 type: string
  *               price:
  *                 type: number
+ *               quantity:
+ *                 type: number
  *     responses:
  *       '200':
  *         description: Product edited successfully
@@ -105,7 +112,6 @@ exports.CreateProduct = async (req, res) => {
  *                   enum: [success]
  *                 product:
  *                   type: object
- *                   // Define your product properties here
  *       '400':
  *         description: Bad Request - Invalid or missing input data
  *       '404':
@@ -115,20 +121,20 @@ exports.CreateProduct = async (req, res) => {
  */
 exports.EditProduct = async (req, res) => {
     try {
-        const { productID } = req.query;
+        const { id } = req.params;
 
         // Verifica se o ID do produto é válido
-        if (!productID){
+        if (!id) {
             return res.status(400).json({ msg: 'ID de produto inválido' });
         }
 
-        const product = await Products.findById(productID);
+        const product = await Products.findById(id);
         if (!product) {
             return res.status(404).json({ msg: 'Produto não encontrado' });
         }
 
         // Atualiza os campos do produto pelo ID
-        const updatedProduct = await Products.findByIdAndUpdate(productID, req.body, { new: true });
+        const updatedProduct = await Products.findByIdAndUpdate(id, req.body, { new: true });
 
         res.json({ status: 'success', product: updatedProduct });
     } catch (error) {
@@ -165,10 +171,15 @@ exports.EditProduct = async (req, res) => {
  *                   enum: [success]
  *                 product:
  *                   type: object
- *                   // Define your product properties here
- *                 stock:
- *                   type: object
- *                   // Define your stock properties here
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     quantity:
+ *                       type: number
  *       '400':
  *         description: Bad Request - Invalid product ID
  *       '404':
@@ -177,23 +188,22 @@ exports.EditProduct = async (req, res) => {
  *         description: Internal Server Error - Failed to remove the product
  */
 exports.RemoveProduct = async (req, res) => {
-    const { productID } = req.query;
+    const { id } = req.params;
 
-    if (!productID) {
+    if (!id) {
         return res.status(400).json({ msg: 'Invalid product ID' });
     }
 
-    const product = await Products.findById(productID);
+    const product = await Products.findById(id);
 
     if (!product) {
         return res.status(404).json({ msg: 'Product not found' });
     }
 
-    const stock = await Stocks.findOneAndDelete({ ProductID: product._id });
     await Products.deleteOne(product);
 
-    res.json({ status: 'success', product: product, stock: stock });
-}
+    res.json({ status: 'success', product: product });
+};
 
 /**
  * @swagger
@@ -223,7 +233,6 @@ exports.RemoveProduct = async (req, res) => {
  *                   enum: [success]
  *                 product:
  *                   type: object
- *                   // Define your product properties here
  *                 stock:
  *                   type: string
  *                   description: Stock status ('Tem stock' or 'Sem stock')
@@ -235,26 +244,24 @@ exports.RemoveProduct = async (req, res) => {
  *         description: Internal Server Error - Failed to retrieve product information
  */
 exports.ReadProduct = async (req, res) => {
-    const { productID } = req.query;
+    const { id } = req.params;
 
-    if (!productID) {
+    if (!id) {
         return res.status(400).json({ msg: 'Invalid product ID' });
     }
 
-    const product = await Products.findById(productID);
+    const product = await Products.findById(id);
     if (!product) {
         return res.status(404).json({ msg: 'Product not found' });
     }
 
-    const productStock = await Stocks.findOne({ ProductID: product._id });
-
-    var stock = "Tem stock"
-    if (productStock.quantity <= 0) {
-        stock = "Sem stock"
+    var stock = "Tem stock";
+    if (product.quantity <= 0) {
+        stock = "Sem stock";
     }
 
-    res.json({ status: 'success', product: product, stock: stock })
-}
+    res.json({ status: 'success', product: product, stock: stock });
+};
 
 /**
  * @swagger
@@ -279,7 +286,6 @@ exports.ReadProduct = async (req, res) => {
  *                   type: array
  *                   items:
  *                     type: object
- *                     // Define your product properties here
  *       '500':
  *         description: Internal Server Error - Failed to retrieve products information
  */
@@ -304,5 +310,4 @@ exports.ReadProducts = async (req, res) => {
     };
 
     res.json({ status: 'success', products: products, pagination: pagination });
-}
-
+};

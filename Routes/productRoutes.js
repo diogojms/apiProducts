@@ -33,9 +33,9 @@ function isAdmin(req, res, next) {
 }
 
 router.post('/', checkToken, isAdmin, productController.CreateProduct)
-router.put('/', checkToken, isAdmin, productController.EditProduct)
-router.delete('/', checkToken, isAdmin, productController.RemoveProduct)
-router.get('/', productController.ReadProduct)
+router.put('/:id', checkToken, isAdmin, productController.EditProduct)
+router.delete('/:id', checkToken, isAdmin, productController.RemoveProduct)
+router.get('/:id', productController.ReadProduct)
 router.get('/products', productController.ReadProducts)
 
 module.exports = router;
