@@ -32,10 +32,11 @@ function isAdmin(req, res, next) {
         res.status(403).json() 
 }
 
-router.post('/', checkToken, isAdmin, productController.CreateProduct)
-router.put('/:id', checkToken, isAdmin, productController.EditProduct)
-router.delete('/:id', checkToken, isAdmin, productController.RemoveProduct)
-router.get('/:id', productController.ReadProduct)
-router.get('/products', productController.ReadProducts)
+router.post('/', checkToken, isAdmin, productController.CreateProduct);
+router.put('/:id', checkToken, isAdmin, productController.EditProduct);
+router.delete('/:id', checkToken, isAdmin, productController.RemoveProduct);
+router.get('/:id', productController.ReadProduct);
+router.get('/', productController.ReadProducts);
+router.get('/count', checkToken, isAdmin, productController.CountProducts);
 
 module.exports = router;
