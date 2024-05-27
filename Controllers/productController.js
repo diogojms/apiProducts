@@ -317,6 +317,11 @@ exports.ReadProducts = async (req, res) => {
 };
 
 exports.CountProducts = async (req, res) => {
-    const count = await Products.countDocuments();
-    res.json({ count });
-};
+    try {
+      const totalProducts = await Products.countDocuments();
+      res.json({ status: 200, message: 'Count retrieved successfully', data: { totalProducts } });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ status: 500, message: 'Error counting products', data: {} });
+    }
+  };
