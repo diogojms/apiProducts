@@ -1,6 +1,6 @@
-const Products = require('../Models/products');
-const mongoose = require('mongoose');
-const e = require('express');
+const Products = require("../Models/products");
+const mongoose = require("mongoose");
+const e = require("express");
 
 /**
  * @swagger
@@ -56,18 +56,19 @@ const e = require('express');
  *         description: Internal Server Error - Failed to create the product
  */
 exports.CreateProduct = async (req, res) => {
-    const { name, price, quantity } = req.body;
+  const { name, price, quantity, img } = req.body;
 
-    if (!name || !price || !quantity)
-        return res.status(400).json({ msg: 'Preencha todos os campos' });
+  if (!name || !price || !quantity || !img)
+    return res.status(400).json({ msg: "Preencha todos os campos" });
 
-    const response = await Products.create({
-        name,
-        price,
-        quantity
-    });
+  const response = await Products.create({
+    name,
+    price,
+    quantity,
+    img,
+  });
 
-    res.json({ status: 'success', product: response });
+  res.json({ status: "success", product: response });
 };
 
 /**
@@ -120,26 +121,29 @@ exports.CreateProduct = async (req, res) => {
  *         description: Internal Server Error - Failed to edit product
  */
 exports.EditProduct = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ msg: 'Invalid product ID' });
-        }
-
-        const product = await Products.findById(id);
-        if (!product) {
-            return res.status(404).json({ msg: 'Product not found' });
-        }
-
-        const updatedProduct = await Products.findByIdAndUpdate(id, req.body, { new: true });
-        res.json({ status: 'success', product: updatedProduct });
-    } catch (error) {
-        console.error('Error updating product:', error);
-        res.status(500).json({ msg: 'Internal server error', error: error.message });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: "Invalid product ID" });
     }
-};
 
+    const product = await Products.findById(id);
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+
+    const updatedProduct = await Products.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    res.json({ status: "success", product: updatedProduct });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res
+      .status(500)
+      .json({ msg: "Internal server error", error: error.message });
+  }
+};
 
 /**
  * @swagger
@@ -186,24 +190,26 @@ exports.EditProduct = async (req, res) => {
  *         description: Internal Server Error - Failed to remove the product
  */
 exports.RemoveProduct = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ msg: 'Invalid product ID' });
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ msg: "Invalid product ID" });
+  }
+
+  try {
+    const product = await Products.findById(id);
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
     }
 
-    try {
-        const product = await Products.findById(id);
-        if (!product) {
-            return res.status(404).json({ msg: 'Product not found' });
-        }
-
-        await Products.deleteOne({ _id: id });
-        res.json({ status: 'success', product: product });
-    } catch (error) {
-        console.error('Error removing product:', error);
-        res.status(500).json({ msg: 'Internal server error', error: error.message });
-    }
+    await Products.deleteOne({ _id: id });
+    res.json({ status: "success", product: product });
+  } catch (error) {
+    console.error("Error removing product:", error);
+    res
+      .status(500)
+      .json({ msg: "Internal server error", error: error.message });
+  }
 };
 
 /**
@@ -246,26 +252,27 @@ exports.RemoveProduct = async (req, res) => {
  */
 
 exports.ReadProduct = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ msg: 'Invalid product ID' });
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ msg: "Invalid product ID" });
+  }
+
+  try {
+    const product = await Products.findById(id);
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
     }
 
-    try {
-        const product = await Products.findById(id);
-        if (!product) {
-            return res.status(404).json({ msg: 'Product not found' });
-        }
-
-        const stock = product.quantity > 0 ? "Tem stock" : "Sem stock";
-        res.json({ status: 'success', product: product, stock: stock });
-    } catch (error) {
-        console.error('Error retrieving product:', error);
-        res.status(500).json({ msg: 'Internal server error', error: error.message });
-    }
+    const stock = product.quantity > 0 ? "In stock" : "Out of stock";
+    res.json({ status: "success", product: product, stock: stock });
+  } catch (error) {
+    console.error("Error retrieving product:", error);
+    res
+      .status(500)
+      .json({ msg: "Internal server error", error: error.message });
+  }
 };
-
 
 /**
  * @swagger
@@ -294,29 +301,29 @@ exports.ReadProduct = async (req, res) => {
  *         description: Internal Server Error - Failed to retrieve products information
  */
 exports.ReadProducts = async (req, res) => {
-    const { page, limit } = req.query;
-    const pageNumber = parseInt(page) || 1;
-    const limitNumber = parseInt(limit) || 10;
+  const { page, limit } = req.query;
+  const pageNumber = parseInt(page) || 1;
+  const limitNumber = parseInt(limit) || 10;
 
-    const startIndex = (pageNumber - 1) * limitNumber;
-    const endIndex = pageNumber * limitNumber;
+  const startIndex = (pageNumber - 1) * limitNumber;
+  const endIndex = pageNumber * limitNumber;
 
-    const products = await Products.find().skip(startIndex).limit(limitNumber);
+  const products = await Products.find().skip(startIndex).limit(limitNumber);
 
-    const totalProducts = await Products.countDocuments();
+  const totalProducts = await Products.countDocuments();
 
-    const totalPages = Math.ceil(totalProducts / limitNumber);
+  const totalPages = Math.ceil(totalProducts / limitNumber);
 
-    const pagination = {
-        currentPage: pageNumber,
-        totalPages: totalPages,
-        totalProducts: totalProducts
-    };
+  const pagination = {
+    currentPage: pageNumber,
+    totalPages: totalPages,
+    totalProducts: totalProducts,
+  };
 
-    res.json({ status: 'success', products: products, pagination: pagination });
+  res.json({ status: "success", products: products, pagination: pagination });
 };
 
 exports.CountProducts = async (req, res) => {
-    const count = await Products.countDocuments();
-    res.json({ count });
+  const count = await Products.countDocuments();
+  res.json({ count });
 };
