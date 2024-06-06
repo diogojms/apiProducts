@@ -7,7 +7,7 @@ const e = require("express");
  * /CreateProduct:
  *   post:
  *     summary: Create a new product
- *     description: Endpoint to create a new product with the provided name, price, and quantity.
+ *     description: Endpoint to create a new product with the provided name, price, quantity, and description.
  *     tags:
  *       - Products
  *     requestBody:
@@ -24,6 +24,8 @@ const e = require("express");
  *                 type: number
  *               quantity:
  *                 type: number
+ *               description:
+ *                 type: string
  *             required:
  *               - name
  *               - price
@@ -50,21 +52,25 @@ const e = require("express");
  *                       type: number
  *                     quantity:
  *                       type: number
+ *                     description:
+ *                       type: string
  *       '400':
  *         description: Bad Request - Invalid or missing input data
  *       '500':
  *         description: Internal Server Error - Failed to create the product
  */
 exports.CreateProduct = async (req, res) => {
-  const { name, price, quantity, img } = req.body;
+  const { name, price, quantity, category, description, img } = req.body;
 
-  if (!name || !price || !quantity || !img)
+  if (!name || !price || !quantity || !img || !category || !description) 
     return res.status(400).json({ msg: "Preencha todos os campos" });
 
   const response = await Products.create({
     name,
     price,
     quantity,
+    category,
+    description,
     img,
   });
 
@@ -100,6 +106,8 @@ exports.CreateProduct = async (req, res) => {
  *                 type: number
  *               quantity:
  *                 type: number
+ *               description:
+ *                 type: string
  *     responses:
  *       '200':
  *         description: Product edited successfully
@@ -292,11 +300,22 @@ exports.ReadProduct = async (req, res) => {
  *               properties:
  *                 status:
  *                   type: string
- *                   enum: [success]
+  *                   enum: [success]
  *                 products:
  *                   type: array
  *                   items:
  *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       price:
+ *                         type: number
+ *                       quantity:
+ *                         type: number
+ *                       description:
+ *                         type: string
  *       '500':
  *         description: Internal Server Error - Failed to retrieve products information
  */
