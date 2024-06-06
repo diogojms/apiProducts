@@ -323,6 +323,35 @@ exports.ReadProducts = async (req, res) => {
   res.json({ status: "success", products: products, pagination: pagination });
 };
 
+exports.ReadProductsByCategory = async (req, res) => {
+  const { category } = req.params;
+  const pageNumber = Number(req.query.pageNumber) || 1;
+  const limitNumber = Number(req.query.limitNumber) || 10;
+  const startIndex = (pageNumber - 1) * limitNumber;
+  const endIndex = pageNumber * limitNumber;
+
+  let products;
+  if (category) {
+    products = await Products.find({ category: category })
+      .skip(startIndex)
+      .limit(limitNumber);
+  } else {
+    products = await Products.find().skip(startIndex).limit(limitNumber);
+  }
+
+  const totalProducts = await Products.countDocuments();
+
+  const totalPages = Math.ceil(totalProducts / limitNumber);
+
+  const pagination = {
+    currentPage: pageNumber,
+    totalPages: totalPages,
+    totalProducts: totalProducts,
+  };
+
+  res.json({ status: "success", products: products, pagination: pagination });
+};
+
 exports.CountProducts = async (req, res) => {
   try {
     const totalProducts = await Products.countDocuments();
