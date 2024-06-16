@@ -36,6 +36,7 @@ router.post("/", checkToken, isAdmin, productController.CreateProduct);
 router.put("/:id", checkToken, isAdmin, productController.EditProduct);
 router.delete("/:id", checkToken, isAdmin, productController.RemoveProduct);
 router.get("/count", checkToken, isAdmin, productController.CountProducts);
+router.get("/random", checkToken, productController.RandomProducts);
 router.get("/:id", productController.ReadProduct);
 router.get("/", productController.ReadProducts);
 router.get("/category/:category", productController.ReadProductsByCategory);

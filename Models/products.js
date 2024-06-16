@@ -12,7 +12,10 @@ const ProductSchema = new Schema(
     quantity: { type: Number, required: true, default: 0 },
     category: { type: String, required: true },
     description: { type: String, required: true },
-    image: { type: String },
+    img: {
+      data: { type: Buffer },
+      contentType: { type: String },
+    },
   },
   { collection: "Products" }
 );
