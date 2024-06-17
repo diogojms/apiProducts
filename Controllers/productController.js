@@ -62,7 +62,7 @@ const e = require("express");
 exports.CreateProduct = async (req, res) => {
   const { name, price, quantity, category, description, img } = req.body;
 
-  if (!name || !price || !quantity || !img || !category || !description) 
+  if (!name || !price || !quantity || !img || !category || !description)
     return res.status(400).json({ msg: "Preencha todos os campos" });
 
   const response = await Products.create({
@@ -273,10 +273,10 @@ exports.ReadProduct = async (req, res) => {
     }
 
     let productResponse = product.toObject(); // Convert the Mongoose document to a plain JavaScript object
-        if (product.img && product.img.data) {
-          const base64Image = product.img.data.toString("base64");
-          productResponse.img = `data:${product.img.contentType};base64,${base64Image}`;
-        }
+    if (product.img && product.img.data) {
+      const base64Image = product.img.data.toString("base64");
+      productResponse.img = `data:${product.img.contentType};base64,${base64Image}`;
+    }
 
     const stock = product.quantity > 0 ? "In stock" : "Out of stock";
     res.json({ status: "success", product: productResponse, stock: stock });
@@ -329,15 +329,12 @@ exports.ReadProducts = async (req, res) => {
   try {
     const { page, limit } = req.query;
     const pageNumber = parseInt(page) || 1;
-    const limitNumber = parseInt(limit) || 10;
+    const limitNumber = parseInt(limit) || Number.MAX_SAFE_INTEGER;
 
     const startIndex = (pageNumber - 1) * limitNumber;
-    const endIndex = pageNumber * limitNumber;
 
-    // Buscar produtos com paginação
     const products = await Products.find().skip(startIndex).limit(limitNumber);
 
-    // Converter cada produto para objeto JavaScript e adicionar imagem base64 se aplicável
     const productsResponse = products.map(product => {
       const productObj = product.toObject();
       if (product.img && product.img.data) {
@@ -347,23 +344,18 @@ exports.ReadProducts = async (req, res) => {
       return productObj;
     });
 
-    // Obter o número total de produtos
     const totalProducts = await Products.countDocuments();
 
-    // Calcular o número total de páginas
     const totalPages = Math.ceil(totalProducts / limitNumber);
 
-    // Configurar a paginação
     const pagination = {
       currentPage: pageNumber,
       totalPages: totalPages,
       totalProducts: totalProducts,
     };
 
-    // Enviar a resposta JSON
     res.json({ status: "success", products: productsResponse, pagination: pagination });
   } catch (error) {
-    // Lidar com erros, se houver
     res.status(500).json({ status: "error", message: error.message });
   }
 };
@@ -386,15 +378,15 @@ exports.ReadProductsByCategory = async (req, res) => {
   }
 
 
-    // Converter cada produto para objeto JavaScript e adicionar imagem base64 se aplicável
-    const productsResponse = products.map(product => {
-      const productObj = product.toObject();
-      if (product.img && product.img.data) {
-        const base64Image = product.img.data.toString("base64");
-        productObj.img = `data:${product.img.contentType};base64,${base64Image}`;
-      }
-      return productObj;
-    });
+  // Converter cada produto para objeto JavaScript e adicionar imagem base64 se aplicável
+  const productsResponse = products.map(product => {
+    const productObj = product.toObject();
+    if (product.img && product.img.data) {
+      const base64Image = product.img.data.toString("base64");
+      productObj.img = `data:${product.img.contentType};base64,${base64Image}`;
+    }
+    return productObj;
+  });
 
   const totalProducts = await Products.countDocuments();
 
@@ -427,8 +419,8 @@ exports.CountProducts = async (req, res) => {
 
 exports.RandomProducts = async (req, res) => {
   try {
-    const limitNumber = 10; 
-    
+    const limitNumber = 10;
+
     const products = await Products.aggregate([
       { $sample: { size: limitNumber } }
     ]);
